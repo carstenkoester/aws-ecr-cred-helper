@@ -84,17 +84,25 @@ metadata:
   namespace: kube-system
 type: Opaque
 data:
-  # Following values are placeholders - replace with your own credentials
-  AWS_ACCESS_KEY_ID: UGxhY2Vob2xkZXIuLi4K       # Your AWS access key ID, BASE64 ENCODED
-  AWS_SECRET_ACCESS_KEY: UGxhY2Vob2xkZXIuLi4K   # Your AWS Secret Acces Key, BASE64 ENCODED
-  AWS_DEFAULT_REGION: UGxhY2Vob2xkZXIuLi4K      # Your AWS region, BASE64 encoded
-
   # The following values are actual sample values.
   # "NAMESPACES" is base64 encoded for "kube-system default", and
   # "SECRET_NAME" is base64 encoded for "registry-aws-ecr" and MUST MATCH the resourceName
   #   specified in the RBAC rule above.
   NAMESPACES: a3ViZS1zeXN0ZW0gZGVmYXVsdA==      # List of namespaces, space separated, BASE64 ENCODED
   SECRET_NAME: cmVnaXN0cnktYXdzLWVjcg==         # Name of the K8s secret to update
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-ecr-cred-helper-config-aws
+  namespace: kube-system
+type: Opaque
+data:
+  # Following values are placeholders - replace with your own credentials
+  AWS_ACCESS_KEY_ID: UGxhY2Vob2xkZXIuLi4K       # Your AWS access key ID, BASE64 ENCODED
+  AWS_SECRET_ACCESS_KEY: UGxhY2Vob2xkZXIuLi4K   # Your AWS Secret Acces Key, BASE64 ENCODED
+  AWS_DEFAULT_REGION: UGxhY2Vob2xkZXIuLi4K      # Your AWS region, BASE64 encoded
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -119,6 +127,9 @@ spec:
             - name: aws-ecr-cred-helper-config
               mountPath: /config
               readOnly: true
+            - name: aws-ecr-cred-helper-config-aws
+              mountPath: /config-aws
+              readOnly: true
       serviceAccountName: aws-ecr-cred-helper
       securityContext:
         fsGroup: 1000
@@ -126,5 +137,9 @@ spec:
         - name: aws-ecr-cred-helper-config
           secret:
             secretName: aws-ecr-cred-helper-config
+            defaultMode: 0o0640
+        - name: aws-ecr-cred-helper-config-aws
+          secret:
+            secretName: aws-ecr-cred-helper-config-aws
             defaultMode: 0o0640
 ```
